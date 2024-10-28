@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Data Transfer Object for User information.")
-public class UserDto {
+public class UserDTO {
 
     @Schema(description = "Email of the user.", example = "user@example.com")
     private String email;

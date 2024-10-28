@@ -1,53 +1,54 @@
 package com.programmingmukesh.inventory.controller;
 
+import com.programmingmukesh.inventory.dto.user.LoginResponse;
+import com.programmingmukesh.inventory.dto.user.LoginUserDTO;
 import com.programmingmukesh.inventory.dto.user.UserRequest;
-import com.programmingmukesh.inventory.dto.user.UserDto;
+import com.programmingmukesh.inventory.dto.user.UserDTO;
 import com.programmingmukesh.inventory.mapper.UserMapper;
 import com.programmingmukesh.inventory.model.User;
+import com.programmingmukesh.inventory.security.JwtService;
 import com.programmingmukesh.inventory.service.auth.AuthService;
+import com.programmingmukesh.inventory.exceptions.ResourceAlreadyExistsException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.web.bind.annotation.*;
 
-
-
-@Tag(
-        name = "Authentication",
-        description = "Endpoints for managing user authentication."
-
-)
+@Tag(name = "Authentication", description = "Endpoints for managing user authentication.")
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
     private final UserMapper userMapper;
+    private final JwtService jwtService;
 
-    @Operation(summary = "Register a new user",
-            description = "Creates a new user account and returns the user details.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User registered successfully",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = UserDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "409", description = "Email, mobile number, or username already exists",
-                    content = @Content(mediaType = "application/json"))
-    })
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@Valid @RequestBody UserRequest userRequest) {
-        User user = authService.createUser(userRequest);
-        return ResponseEntity.ok(userMapper.mapToUserDto(user));
+    public ResponseEntity<?> register(@Valid @RequestBody UserRequest userRequest) {
+        try {
+            User user = authService.createUser(userRequest);
+            UserDTO userDTO = userMapper.mapToUserDTO(user);
+            return ResponseEntity.ok(userDTO);
+        } catch (ResourceAlreadyExistsException e) {
+            log.warn("Registration failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error during user registration: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration failed");
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginUserDTO loginUserDTO) {
+        log.info("Attempting to log in user with email: {}", loginUserDTO.getEmail());
+        User authenticatedUser = authService.authenticate(loginUserDTO);
+        String jwtToken = jwtService.generateToken(authenticatedUser);
+        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime());
+        return ResponseEntity.ok(loginResponse);
     }
 }

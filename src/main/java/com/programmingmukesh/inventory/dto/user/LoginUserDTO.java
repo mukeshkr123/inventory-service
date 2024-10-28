@@ -7,7 +7,7 @@ import lombok.Setter;
 @Data
 @Getter
 @Setter
-public class LonginRequestDto {
-    private String username;
+public class LoginUserDTO {
+    private String email;
     private String password;
 }

@@ -1,6 +1,6 @@
 package com.programmingmukesh.inventory.mapper;
 
-import com.programmingmukesh.inventory.dto.user.UserDto;
+import com.programmingmukesh.inventory.dto.user.UserDTO;
 import com.programmingmukesh.inventory.model.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
     private final ModelMapper modelMapper;
 
-    public User mapToUser(UserDto userDto) {
+    public User mapToUser(UserDTO userDto) {
         return modelMapper.map(userDto, User.class);
     }
 
-    public UserDto mapToUserDto(User user) {
-        return modelMapper.map(user, UserDto.class);
+    public UserDTO mapToUserDTO(User user) {
+        return modelMapper.map(user, UserDTO.class);
     }
 }
