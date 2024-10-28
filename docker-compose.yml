@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres-inventory-db
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: mukesh_root
+      POSTGRES_PASSWORD: password@24
+    volumes:
+      - postgres-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - inventory-network
+
+networks:
+  inventory-network:
+    driver: bridge
+
+volumes:
+  postgres-db-data:
