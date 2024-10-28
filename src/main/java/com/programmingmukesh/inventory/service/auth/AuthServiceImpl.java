@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation for authentication-related operations.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -15,6 +18,13 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
 
+    /**
+     * Creates a new user with the provided details.
+     *
+     * @param user the user details for registration
+     * @return the created User object
+     * @throws ResourceAlreadyExistsException if a user with the same email, mobile number, or username already exists
+     */
     @Override
     public User createUser(UserRequest user) {
         log.info("Attempting to create user with email: {}", user.getEmail());
