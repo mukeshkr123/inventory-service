@@ -14,6 +14,14 @@ services:
     networks:
       - inventory-network
 
+#  redis:
+#    image: redis:alpine
+#    container_name: redis-inventory
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - inventory-network
+
 networks:
   inventory-network:
     driver: bridge
