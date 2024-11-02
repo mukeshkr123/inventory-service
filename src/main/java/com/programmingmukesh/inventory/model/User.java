@@ -1,8 +1,6 @@
 package com.programmingmukesh.inventory.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -75,6 +73,10 @@ public class User extends BaseEntity implements UserDetails {
     @NotBlank(message = "Username cannot be blank")
     @Length(max = 50, message = "Username must not exceed 50 characters")
     private String username;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Comment> comments;
+
 
     private String lastModifiedBy;
 
