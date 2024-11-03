@@ -6,7 +6,7 @@ import com.programmingmukesh.inventory.dto.user.UserRequest;
 import com.programmingmukesh.inventory.dto.user.UserDTO;
 import com.programmingmukesh.inventory.mapper.UserMapper;
 import com.programmingmukesh.inventory.model.User;
-import com.programmingmukesh.inventory.security.JwtService;
+import com.programmingmukesh.inventory.security.JwtUtils;
 import com.programmingmukesh.inventory.service.auth.AuthService;
 import com.programmingmukesh.inventory.exceptions.ResourceAlreadyExistsException;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "Endpoints for managing user authentication.")
@@ -26,7 +30,8 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserMapper userMapper;
-    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserRequest userRequest) {
@@ -45,10 +50,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginUserDTO loginUserDTO) {
-        log.info("Attempting to log in user with email: {}", loginUserDTO.getEmail());
-        User authenticatedUser = authService.authenticate(loginUserDTO);
-        String jwtToken = jwtService.generateToken(authenticatedUser);
-        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime());
-        return ResponseEntity.ok(loginResponse);
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginUserDTO.getEmail(), loginUserDTO.getPassword())
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateTokenForUser(authentication);
+        LoginResponse response = new LoginResponse(jwt);
+        return ResponseEntity.ok(response);
     }
 }

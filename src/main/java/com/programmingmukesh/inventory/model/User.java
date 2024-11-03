@@ -12,12 +12,12 @@ import lombok.Setter;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.validator.constraints.Length;
+
+import java.time.LocalDateTime;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -51,7 +51,7 @@ public class User extends BaseEntity implements UserDetails {
     private String intro;
 
     @NotNull(message = "Last login cannot be null")
-    private LocalDateTime lastLogin = LocalDateTime.now();
+    private LocalDateTime lastLogin;
 
     @Length(max = 50, message = "Last name must not exceed 50 characters")
     private String lastName;
@@ -77,7 +77,6 @@ public class User extends BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Comment> comments;
 
-
     private String lastModifiedBy;
 
     private LocalDateTime lastModifiedDate;
@@ -85,6 +84,11 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
     }
 
     @Override
