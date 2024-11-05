@@ -6,7 +6,10 @@ import com.programmingmukesh.inventory.model.User;
 import com.programmingmukesh.inventory.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @Slf4j
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public User createUser(UserRequest user) {
@@ -45,8 +49,9 @@ public class AuthServiceImpl implements AuthService {
         newUser.setLastName(userRequest.getLastName());
         newUser.setMiddleName(userRequest.getMiddleName());
         newUser.setMobile(userRequest.getMobile());
-//        newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         newUser.setUsername(userRequest.getUsername());
+        newUser.setLastLogin(LocalDateTime.now());
         return newUser;
     }
 }

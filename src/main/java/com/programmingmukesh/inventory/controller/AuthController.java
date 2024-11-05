@@ -1,5 +1,6 @@
 package com.programmingmukesh.inventory.controller;
 
+import com.programmingmukesh.inventory.response.BaseResponse;
 import com.programmingmukesh.inventory.dto.user.LoginResponse;
 import com.programmingmukesh.inventory.dto.user.LoginUserDTO;
 import com.programmingmukesh.inventory.dto.user.UserRequest;
@@ -34,28 +35,36 @@ public class AuthController {
     private final JwtUtils jwtUtils;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<BaseResponse<UserDTO>> register(@Valid @RequestBody UserRequest userRequest) {
         try {
             User user = authService.createUser(userRequest);
             UserDTO userDTO = userMapper.mapToUserDTO(user);
-            return ResponseEntity.ok(userDTO);
+            return ResponseEntity.ok(BaseResponse.success(userDTO));
         } catch (ResourceAlreadyExistsException e) {
             log.warn("Registration failed: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(BaseResponse.error(e.getMessage()));
         } catch (Exception e) {
             log.error("Error during user registration: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration failed");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(BaseResponse.error("Registration failed"));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginUserDTO loginUserDTO) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginUserDTO.getEmail(), loginUserDTO.getPassword())
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateTokenForUser(authentication);
-        LoginResponse response = new LoginResponse(jwt);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<BaseResponse<LoginResponse>> login(@Valid @RequestBody LoginUserDTO loginUserDTO) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginUserDTO.getEmail(), loginUserDTO.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateTokenForUser(authentication);
+            LoginResponse response = new LoginResponse(jwt);
+            return ResponseEntity.ok(BaseResponse.success(response));
+        } catch (Exception e) {
+            log.error("Login failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(BaseResponse.error("Invalid email or password"));
+        }
     }
 }

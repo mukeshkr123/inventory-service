@@ -21,7 +21,6 @@ public class BrandServiceImpl implements BrandService {
     private final BrandRepository brandRepository;
 
     @Override
-    @Transactional
     public Brand createBrand(Brand brandReq) {
         brandRepository.findByTitle(brandReq.getTitle()).ifPresent(brand -> {
             throw new ResourceAlreadyExistsException("Brand with title '" + brandReq.getTitle() + "' already exists");
@@ -47,7 +46,6 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    @Transactional
     public Brand updateBrand(Brand brandReq, Long id) {
         Brand existingBrand = getBrandById(id);
 

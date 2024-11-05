@@ -1,5 +1,7 @@
 package com.programmingmukesh.inventory.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.programmingmukesh.inventory.response.BaseResponse;
 import com.programmingmukesh.inventory.service.AppUserDetailsService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -24,6 +26,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Autowired
     private AppUserDetailsService userDetailsService;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
@@ -39,12 +43,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (JwtException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid or expired token: " + e.getMessage());
+            sendErrorResponse(response, "Invalid or expired token: " + e.getMessage());
             return;
         } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Internal server error: " + e.getMessage());
+            sendErrorResponse(response, "Internal server error: " + e.getMessage());
             return;
         }
 
@@ -57,5 +59,12 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             return headerAuth.substring(7);
         }
         return null;
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, String errorMessage) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        BaseResponse<String> baseResponse = BaseResponse.error(errorMessage); // Use your BaseResponse here
+        response.setContentType("application/json");
+        response.getWriter().write(objectMapper.writeValueAsString(baseResponse));
     }
 }

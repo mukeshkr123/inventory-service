@@ -1,5 +1,6 @@
 package com.programmingmukesh.inventory.controller;
 
+import com.programmingmukesh.inventory.response.BaseResponse;
 import com.programmingmukesh.inventory.model.Brand;
 import com.programmingmukesh.inventory.service.brand.BrandService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,8 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/brands")
@@ -41,10 +40,10 @@ public class BrandController {
                     content = @Content(mediaType = "application/json"))
     })
     @PostMapping
-    public ResponseEntity<Brand> createBrand(@Valid @RequestBody Brand brand) {
+    public ResponseEntity<BaseResponse<Brand>> createBrand(@Valid @RequestBody Brand brand) {
         Brand createdBrand = brandService.createBrand(brand);
         log.info("Brand created with ID: {}", createdBrand.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdBrand);
+        return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.success(createdBrand)); // Updated to use ApiResponse
     }
 
     @Operation(summary = "Get all brands", description = "Retrieves a list of all brands")
@@ -53,13 +52,13 @@ public class BrandController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Brand.class)))
     })
     @GetMapping
-    public ResponseEntity<Page<Brand>> getAllBrands(
+    public ResponseEntity<BaseResponse<Page<Brand>>> getAllBrands(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
-            ) {
+    ) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Brand> brands = brandService.getAllBrand(pageable);
-        return ResponseEntity.ok(brands);
+        return ResponseEntity.ok(BaseResponse.success(brands)); // Updated to use ApiResponse
     }
 
     @Operation(summary = "Get brand by ID", description = "Retrieves details of a specific brand by ID")
@@ -70,10 +69,10 @@ public class BrandController {
                     content = @Content(mediaType = "application/json"))
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Brand> getBrandById(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<Brand>> getBrandById(@PathVariable Long id) {
         Brand brand = brandService.getBrandById(id);
         log.info("Fetched brand with ID: {}", id);
-        return ResponseEntity.ok(brand);
+        return ResponseEntity.ok(BaseResponse.success(brand)); // Updated to use ApiResponse
     }
 
     @Operation(summary = "Update brand", description = "Updates the details of an existing brand")
@@ -86,10 +85,10 @@ public class BrandController {
                     content = @Content(mediaType = "application/json"))
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Brand> updateBrand(@Valid @RequestBody Brand brand, @PathVariable Long id) {
+    public ResponseEntity<BaseResponse<Brand>> updateBrand(@Valid @RequestBody Brand brand, @PathVariable Long id) {
         Brand updatedBrand = brandService.updateBrand(brand, id);
         log.info("Updated brand with ID: {}", id);
-        return ResponseEntity.ok(updatedBrand);
+        return ResponseEntity.ok(BaseResponse.success(updatedBrand)); // Updated to use ApiResponse
     }
 
     @Operation(summary = "Delete brand", description = "Deletes a specific brand by ID")
@@ -100,10 +99,9 @@ public class BrandController {
                     content = @Content(mediaType = "application/json"))
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBrand(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<String>> deleteBrand(@PathVariable Long id) {
         brandService.deleteBrand(id);
         log.info("Deleted brand with ID: {}", id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Brand deleted successfully");
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(BaseResponse.success("Brand deleted successfully")); // Updated to use ApiResponse
     }
-
 }

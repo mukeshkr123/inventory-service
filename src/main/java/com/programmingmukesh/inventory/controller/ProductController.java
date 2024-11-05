@@ -4,6 +4,7 @@ import com.programmingmukesh.inventory.dto.product.ProductRequestDTO;
 import com.programmingmukesh.inventory.exceptions.ResourceAlreadyExistsException;
 import com.programmingmukesh.inventory.exceptions.ResourceNotFoundException;
 import com.programmingmukesh.inventory.model.Product;
+import com.programmingmukesh.inventory.response.BaseResponse;
 import com.programmingmukesh.inventory.service.product.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,11 +38,12 @@ public class ProductController {
     @Operation(summary = "Get all products", description = "Retrieves a list of all products")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved the list of products")
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public ResponseEntity<BaseResponse<List<Product>>> getAllProducts() {
         log.info("GET request received for all products");
         List<Product> products = productService.getProducts();
         log.debug("Returning {} products", products.size());
-        return ResponseEntity.ok(products);
+        BaseResponse<List<Product>> response = BaseResponse.success(products);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -57,14 +59,16 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Product not found")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<Product>> getProductById(@PathVariable Long id) {
         log.info("GET request received for product with ID: {}", id);
         try {
             Product product = productService.getProductById(id);
-            return ResponseEntity.ok(product);
+            BaseResponse<Product> response = BaseResponse.success(product);
+            return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException e) {
             log.error("Product with ID {} not found", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            BaseResponse<Product> response = BaseResponse.error("Product not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
@@ -81,14 +85,16 @@ public class ProductController {
             @ApiResponse(responseCode = "409", description = "Product with the same title already exists")
     })
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody ProductRequestDTO productDto) {
+    public ResponseEntity<BaseResponse<Product>> createProduct(@Valid @RequestBody ProductRequestDTO productDto) {
         log.info("POST request received to save product: {}", productDto.getTitle());
         try {
             Product savedProduct = productService.saveProduct(productDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
+            BaseResponse<Product> response = BaseResponse.success(savedProduct);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (ResourceAlreadyExistsException e) {
             log.error("Product with title '{}' already exists", productDto.getTitle());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+            BaseResponse<Product> response = BaseResponse.error("Product with the same title already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
     }
 
@@ -106,14 +112,16 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Product not found")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequestDTO productRequestDTO) {
+    public ResponseEntity<BaseResponse<Product>> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequestDTO productRequestDTO) {
         log.info("PUT request received to update product with ID: {}", id);
         try {
             Product updatedProduct = productService.updateProduct(productRequestDTO, id);
-            return ResponseEntity.ok(updatedProduct);
+            BaseResponse<Product> response = BaseResponse.success(updatedProduct);
+            return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException e) {
             log.error("Product with ID {} not found", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            BaseResponse<Product> response = BaseResponse.error("Product not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
@@ -129,14 +137,15 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Product not found")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<Void>> deleteProduct(@PathVariable Long id) {
         log.info("DELETE request received for product with ID: {}", id);
         try {
             productService.removeProduct(id);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (ResourceNotFoundException e) {
             log.error("Product with ID {} not found for deletion", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            BaseResponse<Void> response = BaseResponse.error("Product not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 }

@@ -64,7 +64,6 @@ public class ProductServiceImpl implements ProductService {
      * @throws ResourceAlreadyExistsException if a product with the same title exists
      */
     @Override
-    @Transactional
     public Product saveProduct(ProductRequestDTO product) {
         log.info("Saving product with title: {}", product.getTitle());
         if (productRepository.existsByTitle(product.getTitle())) {

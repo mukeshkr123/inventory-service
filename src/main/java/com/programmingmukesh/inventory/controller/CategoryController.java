@@ -1,6 +1,7 @@
 package com.programmingmukesh.inventory.controller;
 
 import com.programmingmukesh.inventory.dto.category.CategoryDTO;
+import com.programmingmukesh.inventory.response.BaseResponse;
 import com.programmingmukesh.inventory.exceptions.ResourceAlreadyExistsException;
 import com.programmingmukesh.inventory.exceptions.ResourceNotFoundException;
 import com.programmingmukesh.inventory.mapper.CategoryMapper;
@@ -40,14 +41,16 @@ public class CategoryController {
     @Operation(summary = "Get all categories", description = "Retrieves a list of all categories")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved the list of categories")
     @GetMapping
-    public ResponseEntity<List<CategoryDTO>> getAllCategories() {
+    public ResponseEntity<BaseResponse<List<CategoryDTO>>> getAllCategories() {
         log.info("GET request received for all categories");
         List<Category> categories = categoryService.getAllCategories();
         List<CategoryDTO> categoryDTOS = categories.stream()
                 .map(categoryMapper::mapToCategoryDTO)  // Assuming you have a mapper to convert Category to CategoryDTO
                 .collect(Collectors.toList());
         log.debug("Returning {} categories", categoryDTOS.size());
-        return ResponseEntity.ok(categoryDTOS);
+
+        BaseResponse<List<CategoryDTO>> response = new BaseResponse<>(true, null, categoryDTOS);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -59,19 +62,21 @@ public class CategoryController {
     @Operation(summary = "Get category by ID", description = "Retrieves a category by its ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the category",
-                    content = @Content(schema = @Schema(implementation = Category.class))),
+                    content = @Content(schema = @Schema(implementation = CategoryDTO.class))),
             @ApiResponse(responseCode = "404", description = "Category not found")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<CategoryDTO>> getCategoryById(@PathVariable Long id) {
         log.info("GET request received for category with ID: {}", id);
         try {
             Category category = categoryService.getCategoryById(id);
             CategoryDTO categoryDTO = categoryMapper.mapToCategoryDTO(category);
-            return ResponseEntity.ok(categoryDTO);
+            BaseResponse<CategoryDTO> response = new BaseResponse<>(true, null, categoryDTO);
+            return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException e) {
             log.error("Category with ID {} not found", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            BaseResponse<CategoryDTO> response = new BaseResponse<>(false, "Category not found", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
@@ -84,19 +89,21 @@ public class CategoryController {
     @Operation(summary = "Create a new category", description = "Saves a new category in the inventory")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Category created successfully",
-                    content = @Content(schema = @Schema(implementation = Category.class))),
+                    content = @Content(schema = @Schema(implementation = CategoryDTO.class))),
             @ApiResponse(responseCode = "409", description = "Category already exists")
     })
     @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
+    public ResponseEntity<BaseResponse<CategoryDTO>> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
         log.info("POST request received to save category: {}", categoryDTO.getTitle());
         try {
             Category savedCategory = categoryService.saveCategory(categoryDTO);
             CategoryDTO savedCategoryDTO = categoryMapper.mapToCategoryDTO(savedCategory);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedCategoryDTO);
+            BaseResponse<CategoryDTO> response = new BaseResponse<>(true, null, savedCategoryDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (ResourceAlreadyExistsException e) {
             log.error("Category with title '{}' already exists", categoryDTO.getTitle());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+            BaseResponse<CategoryDTO> response = new BaseResponse<>(false, "Category already exists", null);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
     }
 
@@ -110,19 +117,21 @@ public class CategoryController {
     @Operation(summary = "Update a category", description = "Updates an existing category by its ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Category updated successfully",
-                    content = @Content(schema = @Schema(implementation = Category.class))),
+                    content = @Content(schema = @Schema(implementation = CategoryDTO.class))),
             @ApiResponse(responseCode = "404", description = "Category not found")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryDTO categoryDTO) {
+    public ResponseEntity<BaseResponse<CategoryDTO>> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryDTO categoryDTO) {
         log.info("PUT request received to update category with ID: {}", id);
         try {
             Category updatedCategory = categoryService.updateCategory(categoryDTO, id);
             CategoryDTO updatedCategoryDTO = categoryMapper.mapToCategoryDTO(updatedCategory);
-            return ResponseEntity.ok(updatedCategoryDTO);
+            BaseResponse<CategoryDTO> response = new BaseResponse<>(true, null, updatedCategoryDTO);
+            return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException e) {
             log.error("Category with ID {} not found", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            BaseResponse<CategoryDTO> response = new BaseResponse<>(false, "Category not found", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
@@ -138,14 +147,16 @@ public class CategoryController {
             @ApiResponse(responseCode = "404", description = "Category not found")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<Void>> deleteCategory(@PathVariable Long id) {
         log.info("DELETE request received for category with ID: {}", id);
         try {
             categoryService.deleteCategory(id);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            BaseResponse<Void> response = new BaseResponse<>(true, null, null);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
         } catch (ResourceNotFoundException e) {
             log.error("Category with ID {} not found for deletion", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            BaseResponse<Void> response = new BaseResponse<>(false, "Category not found", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 }

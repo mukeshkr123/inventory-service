@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
+/**
+ * UserController handles API requests related to user operations.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/api/users")
@@ -21,8 +23,13 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
 
+    /**
+     * Retrieves information about the authenticated user.
+     *
+     * @return ResponseEntity containing UserDTO with user information
+     */
     @GetMapping("/info")
-    public ResponseEntity<UserDTO> getInfo(){
+    public ResponseEntity<UserDTO> getInfo() {
         User user = userService.getAuthenticatedUser();
         UserDTO response = userMapper.mapToUserDTO(user);
         return ResponseEntity.ok(response);
