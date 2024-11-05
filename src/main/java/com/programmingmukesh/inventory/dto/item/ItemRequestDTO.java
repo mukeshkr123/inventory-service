@@ -1,32 +1,24 @@
-package com.programmingmukesh.inventory.model;
+package com.programmingmukesh.inventory.dto.item;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-@Entity
-@Table(name = "items")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@ToString(onlyExplicitlyIncluded = true)
-public class Item extends BaseEntity {
+@AllArgsConstructor
+@ToString
+public class ItemRequestDTO {
 
     @NotBlank(message = "Description cannot be empty")
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", insertable = false, updatable = false)
-    private Product product;
+    private Long productId;
 
-    @ManyToOne
-    @JoinColumn(name = "brand_id", insertable = false, updatable = false)
-    private Brand brand;
+    private Long brandId;
 
-    @ManyToOne
-    @JoinColumn(name = "supplier_id", insertable = false, updatable = false)
-    private Supplier supplier;
+    private Long supplierId;
 
     @NotBlank(message = "SKU cannot be empty")
     @Column(length = 100)
@@ -56,10 +48,4 @@ public class Item extends BaseEntity {
     @PositiveOrZero(message = "Defective must be greater than or equal to zero")
     private Short defective = 0;
 
-    public void setQuantity(Short quantity) {
-        if (quantity < 0) {
-            throw new IllegalArgumentException("Quantity cannot be negative");
-        }
-        this.quantity = quantity;
-    }
 }
